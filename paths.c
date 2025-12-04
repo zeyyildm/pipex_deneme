@@ -6,7 +6,7 @@
 /*   By: zeyildir <zeyildir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/09 16:18:32 by zeyildir          #+#    #+#             */
-/*   Updated: 2025/11/09 19:37:15 by zeyildir         ###   ########.fr       */
+/*   Updated: 2025/12/04 21:55:52 by zeyildir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,8 +23,7 @@ char	*get_paths(char **env)
 			return (env[i] + 5);
 		i++;
 	}
-	write(2, "Error\n", 6);
-	exit(1);
+	error_message();
 	return (NULL);
 }
 
@@ -51,6 +50,8 @@ static char	*join_with_cmd(char *dir, char *cmd, char **paths)
 	char	*joined_path;
 	char	*path_with_cmd;
 
+	if (ft_strchr(cmd, '/') != 0)
+		return (ft_strdup(cmd));
 	joined_path = ft_strjoin(dir, "/");
 	if (!joined_path)
 	{

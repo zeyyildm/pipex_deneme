@@ -1,6 +1,6 @@
 NAME = pipex
 
-SRCS = pipex.c pipex_utils.c paths.c
+SRCS = pipex.c pipex_utils.c paths.c null_check.c
 OBJS = $(SRCS:.c=.o)
 
 CC = cc

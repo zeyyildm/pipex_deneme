@@ -6,7 +6,7 @@
 /*   By: zeyildir <zeyildir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/09 16:18:45 by zeyildir          #+#    #+#             */
-/*   Updated: 2025/11/09 20:01:42 by zeyildir         ###   ########.fr       */
+/*   Updated: 2025/12/04 21:54:44 by zeyildir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,51 +27,72 @@ void	free_split(char **arr)
 	free(arr);
 }
 
-void	child_process(char *path, char **arg, char **cmd, int *fd)
+static	void	close_pipe(t_pipex *data, int fd)
+{
+	close(data->fd[0]);
+	close(data->fd[1]);
+	close(fd);
+}
+
+void	free_process(t_pipex *data)
+{
+	free(data->path2);
+	free_split(data->cmd1);
+	free_split(data->cmd2);
+	close(data->fd[0]);
+	close(data->fd[1]);
+}
+
+void	child_process(t_pipex *data, char **arg)
 {
 	int		in_fd;
 
 	in_fd = open(arg[1], O_RDONLY, 0644);
 	if (in_fd == -1)
 	{
-		write(2, "Error\n", 6);
+		free(data->path1);
+		free_process(data);
+		error_message();
+	}
+	if (!data->path1)
+	{
+		free_process(data);
+		close(in_fd);
 		exit(1);
 	}
 	dup2(in_fd, STDIN_FILENO);
-	dup2(fd[1], STDOUT_FILENO);
-	close(fd[0]);
-	close(fd[1]);
-	close(in_fd);
-	execve(path, cmd, NULL);
+	dup2(data->fd[1], STDOUT_FILENO);
+	close_pipe(data, in_fd);
+	free(data->path2);
+	free_split(data->cmd2);
+	if (execve(data->path1, data->cmd1, NULL) == -1)
+	{
+		free(data->path1);
+		free_split(data->cmd1);
+	}
 }
 
-void	parent_process(char *path, char **arg, char **cmd, int *fd)
+void	parent_process(t_pipex *data, int o_fd)
 {
-	int		o_fd;
-
-	o_fd = open(arg[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	if (o_fd == -1)
 	{
-		write(2, "Error\n", 6);
+		free_helper(data);
+		error_message();
+	}
+	if (!data->path2)
+	{
+		free_helper(data);
+		close(o_fd);
 		exit(1);
 	}
-	dup2(fd[0], STDIN_FILENO);
+	dup2(data->fd[0], STDIN_FILENO);
 	dup2(o_fd, STDOUT_FILENO);
-	close(fd[1]);
-	close(fd[0]);
-	close(o_fd);
-	execve(path, cmd, NULL);
-}
-
-void	null_check(char **arg)
-{
-	int	i;
-
-	i = 1;
-	while (arg[i])
+	close_pipe(data, o_fd);
+	free(data->path1);
+	free_split(data->cmd1);
+	if (execve(data->path2, data->cmd2, NULL) == -1)
 	{
-		if ((arg[i][0] == '\0' || arg[i][0] == ' ') && i != 2)
-			write(2, "Error\n", 6);
-		i++;
+		free(data->path2);
+		free_split(data->cmd2);
 	}
 }
