@@ -4,7 +4,7 @@ A 42 school project that recreates the behavior of shell pipes (`|`) in C. This 
 
 ## 📋 Description
 
-`pipex` is a program that mimics the behavior of the shell command:
+`pipex` is a program that mimics the behavior of the shell command: 
 ```bash
 < file1 cmd1 | cmd2 > file2
 ```
